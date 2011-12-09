@@ -11,7 +11,7 @@ getoptdir=$(libdir)/getopt
 localedir=$(sharedir)/locale
 
 # Define this to 0 to use the getopt(3) routines in this package.
-LIBCGETOPT=1
+LIBCGETOPT=0
 
 # Define this to 1 if you do not have the gettext routines
 WITHOUT_GETTEXT=0
@@ -24,8 +24,9 @@ UNLIKELYNAME=a8vwjfd92
 
 SHELL=/bin/sh
 
-CC=gcc
-LD=ld
+# CC, LD, LDFLAGS, CPPFLAGS and CFLAGS are defined in the CouchDB build script for PlayBook 
+#CC=gcc
+#LD=ld
 RM=rm -f
 INSTALL=install
 MSGFMT=msgfmt
@@ -33,18 +34,19 @@ MSGFMT=msgfmt
 LANGUAGES = cs de es fr it ja nl pt_BR
 MOFILES:=$(patsubst %,po/%.mo,$(LANGUAGES))
 
-CPPFLAGS=-DLIBCGETOPT=$(LIBCGETOPT) -DWITH_GETTEXT=$(WITH_GETTEXT) -DLOCALEDIR=\"$(localedir)\" -DNOT_UTIL_LINUX
+CPPFLAGS+=-DLIBCGETOPT=$(LIBCGETOPT) -DWITH_GETTEXT=$(WITH_GETTEXT) -DLOCALEDIR=\"$(localedir)\" -DNOT_UTIL_LINUX
 ifeq ($(LIBCGETOPT),0)
 CPPFLAGS+=-I./gnu 
 endif
-WARNINGS=-Wall \
-         -W -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual \
+WARNINGS= -W -Wshadow -Wpointer-arith -Wbad-function-cast -Wcast-qual \
          -Wcast-align -Wmissing-declarations \
          -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
          -Wnested-externs -Winline
 OPTIMIZE=-O3 -fno-strength-reduce
-CFLAGS=$(WARNINGS) $(OPTIMIZE)
-LDFLAGS=
+
+CFLAGS+=$(WARNINGS) $(OPTIMIZE)
+
+#LDFLAGS=
 
 sources=getopt.c
 ifeq ($(LIBCGETOPT),0)
@@ -61,8 +63,9 @@ all: $(binaries) all_po
 clean: clean_po
 	-$(RM) $(objects) $(binaries) 
 
+# Add PlayBook libraries to link against
 getopt: $(objects)
-	$(CC) $(LDFLAGS) -o $@ $(objects)
+	$(CC) $(LDFLAGS) -o $@ -liconv -lintl $(objects)
 
 install: getopt install_po
 	$(INSTALL) -m 755 -d $(DESTDIR)$(bindir) $(DESTDIR)$(man1dir)
